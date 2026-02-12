@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 10
+
+void encrypt(int key[MAX][MAX], int plaintext[MAX], int ciphertext[MAX], int n) {
+    for (int i = 0; i < n; i++) {
+        ciphertext[i] = 0;
+        for (int j = 0; j < n; j++) {
+            ciphertext[i] += key[i][j] * plaintext[j];
+        }
+        ciphertext[i] %= 26; // Assuming letters A-Z
+    }
+}
+
+void decrypt(int key[MAX][MAX], int ciphertext[MAX], int plaintext[MAX], int n) {
+    // Inverse key calculation and decryption logic would go here
+}
+
+int main() {
+    int key[MAX][MAX] = {{6, 24, 1}, {13, 16, 10}, {20, 17, 15}};
+    int plaintext[MAX] = {0, 1, 2}; // Example plaintext A, B, C
+    int ciphertext[MAX];
+    int n = 3; // Size of the key matrix
+
+    encrypt(key, plaintext, ciphertext, n);
+
+    printf("Ciphertext: ");
+    for (int i = 0; i < n; i++) {
+        printf("%d ", ciphertext[i]);
+    }
+    printf("\n");
+
+    // Known plaintext attack logic would go here
+
+    return 0;
+}
