@@ -1,0 +1,155 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+char matrix[5][5];
+
+// Function to check if character already exists in matrix
+int exists(char c, char used[]) {
+    for (int i = 0; used[i] != '\0'; i++) {
+        if (used[i] == c)
+            return 1;
+    }
+    return 0;
+}
+
+// Function to generate 5x5 matrix using keyword
+void generateMatrix(char key[]) {
+    char used[26] = "";
+    int row = 0, col = 0;
+
+    // Add key letters
+    for (int i = 0; key[i] != '\0'; i++) {
+        char c = toupper(key[i]);
+
+        if (c == 'J') c = 'I';
+
+        if (isalpha(c) && !exists(c, used)) {
+            matrix[row][col++] = c;
+            int len = strlen(used);
+            used[len] = c;
+            used[len + 1] = '\0';
+
+            if (col == 5) {
+                col = 0;
+                row++;
+            }
+        }
+    }
+
+    // Add remaining alphabet letters
+    for (char c = 'A'; c <= 'Z'; c++) {
+        if (c == 'J') continue;
+
+        if (!exists(c, used)) {
+            matrix[row][col++] = c;
+            int len = strlen(used);
+            used[len] = c;
+            used[len + 1] = '\0';
+
+            if (col == 5) {
+                col = 0;
+                row++;
+            }
+        }
+    }
+}
+
+// Function to find position of character in matrix
+void findPosition(char c, int *row, int *col) {
+    if (c == 'J') c = 'I';
+
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            if (matrix[i][j] == c) {
+                *row = i;
+                *col = j;
+                return;
+            }
+        }
+    }
+}
+
+// Function to prepare plaintext (remove spaces, handle duplicates)
+void prepareText(char input[], char output[]) {
+    int k = 0;
+    for (int i = 0; input[i] != '\0'; i++) {
+        if (isalpha(input[i])) {
+            char c = toupper(input[i]);
+            if (c == 'J') c = 'I';
+            output[k++] = c;
+        }
+    }
+    output[k] = '\0';
+
+    // Insert X between duplicate letters
+    for (int i = 0; i < k; i += 2) {
+        if (output[i] == output[i + 1]) {
+            for (int j = k; j > i + 1; j--) {
+                output[j] = output[j - 1];
+            }
+            output[i + 1] = 'X';
+            k++;
+        }
+    }
+
+    // If odd length, append X
+    if (k % 2 != 0) {
+        output[k++] = 'X';
+    }
+    output[k] = '\0';
+}
+
+// Function to encrypt plaintext
+void encrypt(char text[]) {
+    for (int i = 0; text[i] != '\0'; i += 2) {
+        int r1, c1, r2, c2;
+        findPosition(text[i], &r1, &c1);
+        findPosition(text[i + 1], &r2, &c2);
+
+        if (r1 == r2) {
+            // Same row
+            text[i] = matrix[r1][(c1 + 1) % 5];
+            text[i + 1] = matrix[r2][(c2 + 1) % 5];
+        }
+        else if (c1 == c2) {
+            // Same column
+            text[i] = matrix[(r1 + 1) % 5][c1];
+            text[i + 1] = matrix[(r2 + 1) % 5][c2];
+        }
+        else {
+            // Rectangle rule
+            text[i] = matrix[r1][c2];
+            text[i + 1] = matrix[r2][c1];
+        }
+    }
+}
+
+int main() {
+    char key[100], plaintext[100], prepared[200];
+
+    printf("Enter keyword: ");
+    fgets(key, sizeof(key), stdin);
+    key[strcspn(key, "\n")] = '\0';
+
+    printf("Enter plaintext: ");
+    fgets(plaintext, sizeof(plaintext), stdin);
+    plaintext[strcspn(plaintext, "\n")] = '\0';
+
+    generateMatrix(key);
+
+    printf("\nPlayfair Matrix:\n");
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            printf("%c ", matrix[i][j]);
+        }
+        printf("\n");
+    }
+
+    prepareText(plaintext, prepared);
+    encrypt(prepared);
+
+    printf("\nCiphertext: %s\n", prepared);
+
+    return 0;
+}
